@@ -1,0 +1,4 @@
+p, admin, /api/user, GET
+p, editor, /api/article, POST
+g, alice, admin
+g, bob, editor
