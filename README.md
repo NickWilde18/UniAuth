@@ -122,8 +122,8 @@ sequenceDiagram
         User->>Django: API调用<br/>(API Key: sk-xxxxx)
         Django->>UniAuth: 检查权限<br/>{upn: "api:sk-xxxxx",<br/>api, /v1/chat, POST}
         UniAuth-->>Django: {allowed: true}
-        Django->>UniAuth: 查询配额池<br/>{upn: "api:sk-xxxxx"}
-        UniAuth-->>Django: {quotaPool: "api-basic-pool"}
+        Django->>UniAuth: 查询绑定账号<br/>{upn: "api:sk-xxxxx"}
+        UniAuth-->>Django: {real_upn: "user@link.cuhk.edu.cn"}
         Django->>Django: 处理请求并扣费
         Django->>User: 返回结果
     end
