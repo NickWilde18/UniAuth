@@ -188,7 +188,7 @@ graph TB
 ```mermaid
 graph LR
     subgraph "用户身份"
-        USER["用户 UPN<br/>alice@link.cuhk.edu.cn"]
+        USER["用户 UPN<br/>alice\@link.cuhk.edu.cn"]
         APIKEY["API Key<br/>sk-basic-xxxxx"]
     end
     
