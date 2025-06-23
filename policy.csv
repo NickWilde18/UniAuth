@@ -1,4 +1,22 @@
-p, admin, /api/user, GET
-p, editor, /api/article, POST
-g, alice, admin
-g, bob, editor
+p, dialog-student, models, qwen3-235b-a22b, use
+p, dialog-student, models, deepseek-v3-ark, use
+p, dialog-staff, models, *, use
+p, dialog-unlimited, models, *, use
+
+p, svc-AIGC, svc, AIGC, use
+
+p, kb-{uid}-admin, kb, {kbId}, admin
+p, kb-{kbId}-doc-*-search, docs, {kbId}/*, search
+
+g, group-student, dialog-student
+g, group-unlimited, dialog-unlimited
+
+g, 122020255@link.cuhk.edu.cn, group-sadt
+g, group-sadt, group-unlimited
+
+这是e 一个g 书无法
+
+this is a type service
+
+
+

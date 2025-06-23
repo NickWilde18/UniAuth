@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
+	"os"
 
 	"gorm.io/driver/sqlite" // 替换驱动
 	"gorm.io/gorm"
@@ -32,7 +34,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("new enforcer: %v", err)
 	}
-	//enforcer.EnableCache(true)
 
 	// 4. 载入策略
 	if err := enforcer.LoadPolicy(); err != nil {
@@ -40,11 +41,14 @@ func main() {
 	}
 
 	// 5. 写入一些初始化策略
-	initPolicies(enforcer)
+	if err := initPoliciesFromCSV(enforcer, "policy.csv"); err != nil {
+		log.Fatalf("init policies from csv: %v", err)
+		return
+	}
 
 	// 6. 试验证
 	testCases := [][]string{
-		{"alice", "/api/user", "GET"},
+		{"user's upn", "models", "qwen3", "use"},
 		{"bob", "/api/user", "GET"},
 		{"bob", "/api/article", "POST"},
 		{"eve", "/api/data", "GET"},
@@ -56,32 +60,41 @@ func main() {
 	}
 }
 
-func initPolicies(e *casbin.Enforcer) {
-	if ok, _ := e.Enforce("alice", "/api/user", "GET"); ok {
-		return
+func initPoliciesFromCSV(e *casbin.Enforcer, csvFile string) error {
+	f, err := os.Open(csvFile)
+	if err != nil {
+		return fmt.Errorf("open csv: %w", err)
 	}
-	if _, err := e.AddPolicy("admin", "/api/user", "GET"); err != nil {
-		log.Fatalf("add policy: %v", err)
-	}
-	if _, err := e.AddPolicy("editor", "/api/article", "POST"); err != nil {
-		log.Fatalf("add policy: %v", err)
+	defer f.Close()
 
-	}
-	if _, err := e.AddPolicy("viewer", "/api/data", "GET"); err != nil {
-		log.Fatalf("add policy: %v", err)
-	}
-
-	if _, err := e.AddRoleForUser("alice", "admin"); err != nil {
-		log.Fatalf("add role: %v", err)
-	}
-	if _, err := e.AddRoleForUser("bob", "editor"); err != nil {
-		log.Fatalf("add role: %v", err)
-	}
-	if _, err := e.AddRoleForUser("eve", "viewer"); err != nil {
-		log.Fatalf("add role: %v", err)
+	r := csv.NewReader(f)
+	r.TrimLeadingSpace = true
+	lines, err := r.ReadAll()
+	if err != nil {
+		return fmt.Errorf("read csv: %w", err)
 	}
 
-	if err := e.SavePolicy(); err != nil {
-		log.Fatalf("save policy: %v", err)
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
+		}
+		switch line[0] {
+		case "p":
+			// p, sub, obj, act
+			if len(line) < 4 {
+				continue
+			}
+			_, _ = e.AddPolicy(line[1], line[2], line[3])
+		case "g":
+			// g, user/child, role/parent
+			if len(line) < 3 {
+				continue
+			}
+			_, _ = e.AddRoleForUser(line[1], line[2])
+		default:
+			// 其它类型忽略
+		}
 	}
+
+	return e.SavePolicy() // 写回 SQLite
 }
