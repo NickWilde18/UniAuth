@@ -135,53 +135,100 @@ sequenceDiagram
 - 知识库权限：独立的知识库权限体系
 ```mermaid
 graph TB
-    subgraph "用户与组关系"
-        U1["alice\@link.cuhk.edu.cn"]
-        U2["bob\@staff.cuhk.edu.cn"]
-        U3["api:sk-basic-xxxxx"]
+    subgraph "用户与基础组（互斥）"
+        Alice["Alice<br/>alice@link.cuhk.edu.cn"]
+        Bob["Bob<br/>bob@temp.com"]
+        Charlie["Charlie<br/>charlie@staff.cuhk.edu.cn"]
         
-        G1[group-student]
-        G2[group-staff]
-        G3[group-unlimited]
-        G4[group-api-basic]
+        GS[group-student<br/>学生组]
+        GST[group-staff<br/>教职工组]
+        GU[group-unlimited<br/>无限制组]
+        GG[group-guest<br/>访客组]
         
-        U1 --> G1
-        U1 --> |特殊升级| G2
-        U2 --> G2
-        U3 --> G4
-        
-        G3 --> |继承| G2
-        G2 --> |继承| G1
+        Alice -->|手动升级| GST
+        Bob --> GG
+        Charlie -->|域名匹配| GST
     end
     
-    subgraph "权限策略"
-        G1 --> P1["模型权限<br/>✓ gpt-3.5<br/>✗ gpt-4"]
-        G1 --> P2["配额池<br/>student-pool"]
+    subgraph "API Key 绑定"
+        SK1["API Key<br/>sk-alice-proj1"]
+        SK2["API Key<br/>sk-alice-proj2"]
+        SK3["API Key<br/>sk-bob-dev"]
         
-        G2 --> P3["模型权限<br/>✓ gpt-3.5<br/>✓ gpt-4<br/>✓ claude"]
-        G2 --> P4["配额池<br/>staff-pool"]
+        SK1 -->|绑定| Alice
+        SK2 -->|绑定| Alice
+        SK3 -->|绑定| Bob
         
-        G3 --> P5["模型权限<br/>✓ 所有模型"]
-        G3 --> P6["配额池<br/>unlimited-pool"]
-        
-        G4 --> P7["API权限<br/>✓ /v1/chat<br/>✓ /v1/embeddings"]
-        G4 --> P8["配额池<br/>api-basic-pool"]
+        Note1["使用API Key时：<br/>1. 查找绑定的用户<br/>2. 使用该用户的权限<br/>3. 从该用户的配额池扣费"]
     end
     
-    subgraph "知识库权限"
-        U1 --> KB1[kb-kb001-admin]
-        KB1 --> KBP1["知识库kb001<br/>✓ 所有权限"]
-        
-        U2 --> KB2[kb-kb002-reader]
-        KB2 --> KBP2["知识库kb002<br/>✓ 只读权限"]
+    subgraph "基础组权限（独立定义）"
+        GST --> PGST["✓ GPT-3.5/4<br/>✓ Claude全系列<br/>✓ Llama全系列<br/>💰 staff-pool"]
+        GS --> PGS["✓ GPT-3.5<br/>✓ Claude Instant<br/>✓ Llama-13b<br/>💰 student-pool"]
+        GU --> PGU["✓ 所有模型<br/>💰 unlimited-pool"]
+        GG --> PGG["✓ GPT-3.5<br/>💰 guest-pool"]
     end
     
-    style G1 fill:#ffd,stroke:#333,stroke-width:2px
-    style G2 fill:#dfd,stroke:#333,stroke-width:2px
-    style G3 fill:#ddf,stroke:#333,stroke-width:2px
-    style P2 fill:#faa,stroke:#333,stroke-width:2px
-    style P4 fill:#afa,stroke:#333,stroke-width:2px
-    style P6 fill:#aaf,stroke:#333,stroke-width:2px
+    style Alice fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style SK1 fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style SK2 fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Note1 fill:#f5f5f5,stroke:#616161,stroke-width:1px,stroke-dasharray: 5 5
+```
+```mermaid
+graph TB
+    subgraph "知识库权限体系"
+        KB1["知识库 kb001"]
+        
+        subgraph "知识库角色"
+            KBA["kb-001-admin<br/>管理员"]
+            KBE["kb-001-editor<br/>编辑者"]
+            KBV["kb-001-viewer<br/>查看者"]
+        end
+        
+        KB1 --> KBA
+        KB1 --> KBE
+        KB1 --> KBV
+    end
+    
+    subgraph "文档级别权限"
+        subgraph "kb001 文档"
+            D1["doc-public-001<br/>公开文档"]
+            D2["doc-public-002<br/>公开文档"]
+            D3["doc-private-001<br/>私密文档"]
+            D4["doc-private-002<br/>私密文档"]
+            D5["doc-normal-001<br/>普通文档"]
+        end
+        
+        KBA -->|"✓ 读/写/删除<br/>所有文档"| D1
+        KBA --> D2
+        KBA --> D3
+        KBA --> D4
+        KBA --> D5
+        
+        KBE -->|"✓ 读/写<br/>所有文档"| D1
+        KBE --> D2
+        KBE --> D3
+        KBE --> D4
+        KBE --> D5
+        
+        KBV -->|"✓ 读取<br/>公开文档"| D1
+        KBV --> D2
+        KBV -->|"❌ 禁止读取<br/>私密文档"| D3
+        KBV --> D4
+        KBV -->|"✓ 读取<br/>普通文档"| D5
+    end
+    
+    subgraph "用户分配"
+        U1["Alice"] -->|分配| KBA
+        U2["Charlie"] -->|分配| KBE
+        U3["Bob"] -->|分配| KBV
+    end
+    
+    style D3 fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style D4 fill:#ffebee,stroke:#c62828,stroke-width:2px
+    style KBA fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    style KBE fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style KBV fill:#e1f5fe,stroke:#01579b,stroke-width:2px
 ```
 
 # 权限流转示意图
