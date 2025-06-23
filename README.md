@@ -1,5 +1,8 @@
-# 架构1
-
+# 整体系统架构图
+- Django主服务：继续负责SSO认证、Session管理和扣费
+- UniAuth服务：专注于权限判断和用户组查询
+- Redis：共享Session存储
+- 微服务：通过Redis获取用户身份，调用UniAuth进行权限判断
 ```mermaid
 graph TB
     subgraph "用户入口"
@@ -69,7 +72,11 @@ graph TB
     style BillingService fill:#99f,stroke:#333,stroke-width:4px
 ```
 
-# 架构2
+# 详细数据流程图
+- 认证流程：用户通过SSO登录，Django存储Session到Redis
+- 模型调用流程：权限检查→查询用户组→扣费→返回结果
+- 微服务访问流程：从Redis获取身份→权限检查→执行业务
+- API Key调用流程：将API Key映射为特殊UPN进行权限控制
 ```mermaid
 sequenceDiagram
     participant User as 用户
@@ -122,7 +129,10 @@ sequenceDiagram
     end
 ```
 
-# 架构3
+# 权限模型结构图
+- 用户与组的关系：用户可以属于多个组，组之间有继承关系
+- 组的权限策略：每个组对应不同的模型权限和配额池
+- 知识库权限：独立的知识库权限体系
 ```mermaid
 graph TB
     subgraph "用户与组关系"
