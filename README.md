@@ -141,9 +141,9 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "用户与基础组（互斥）"
-        Alice["Alice<br/>alice@link.cuhk.edu.cn"]
-        Bob["Bob<br/>bob@temp.com"]
-        Charlie["Charlie<br/>charlie@staff.cuhk.edu.cn"]
+        Alice["Alice<br/>alice\@link.cuhk.edu.cn"]
+        Bob["Bob<br/>bob\@temp.com"]
+        Charlie["Charlie<br/>charlie\@staff.cuhk.edu.cn"]
         
         GS[group-student<br/>学生组]
         GST[group-staff<br/>教职工组]
