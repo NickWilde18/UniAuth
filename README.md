@@ -200,17 +200,17 @@ graph LR
     
     subgraph "权限映射"
         GS --> QS["配额池<br/>student-pool<br/>💰 $100/月"]
-        GS --> MS["模型权限<br/>✓ GPT-3.5<br/>✓ Claude Instant<br/>❌ GPT-4"]
+        GS --> MS["模型权限<br/>✓ GPT-4o<br/>✓ Qwen3-235B-A22B<br/>❌ GPT-4.1"]
         
         GKB --> KBP["知识库权限<br/>kb001: 完全控制<br/>- 读取/写入/删除<br/>- 成员管理"]
         
-        GAPI --> QAPI["配额池<br/>api-basic-pool<br/>💰 $50/月"]
+        GAPI --> QAPI["配额池<br/>绑定用户"]
         GAPI --> MAPI["API权限<br/>✓ /v1/chat<br/>✓ /v1/embeddings<br/>❌ /admin/*"]
     end
     
     subgraph "扣费决策"
-        QS --> BILL1["调用GPT-3.5<br/>从student-pool扣费"]
-        QAPI --> BILL2["API调用<br/>从api-basic-pool扣费"]
+        QS --> BILL1["调用GPT-4o<br/>从student-pool扣费"]
+        QAPI --> BILL2["API调用<br/>从绑定账户扣费"]
     end
     
     style USER fill:#e1f5fe,stroke:#01579b,stroke-width:2px
