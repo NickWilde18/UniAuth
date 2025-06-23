@@ -136,8 +136,8 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "用户与组关系"
-        U1["alice@link.cuhk.edu.cn"]
-        U2["bob@staff.cuhk.edu.cn"]
+        U1["alice\@link.cuhk.edu.cn"]
+        U2["bob\@staff.cuhk.edu.cn"]
         U3["api:sk-basic-xxxxx"]
         
         G1[group-student]
