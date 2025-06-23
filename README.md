@@ -136,9 +136,9 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "用户与组关系"
-        U1[alice@link.cuhk.edu.cn]
-        U2[bob@staff.cuhk.edu.cn]
-        U3[api:sk-basic-xxxxx]
+        U1["alice@link.cuhk.edu.cn"]
+        U2["bob@staff.cuhk.edu.cn"]
+        U3["api:sk-basic-xxxxx"]
         
         G1[group-student]
         G2[group-staff]
@@ -155,25 +155,25 @@ graph TB
     end
     
     subgraph "权限策略"
-        G1 --> P1[模型权限<br/>✓ gpt-3.5<br/>✗ gpt-4]
-        G1 --> P2[配额池<br/>student-pool]
+        G1 --> P1["模型权限<br/>✓ gpt-3.5<br/>✗ gpt-4"]
+        G1 --> P2["配额池<br/>student-pool"]
         
-        G2 --> P3[模型权限<br/>✓ gpt-3.5<br/>✓ gpt-4<br/>✓ claude]
-        G2 --> P4[配额池<br/>staff-pool]
+        G2 --> P3["模型权限<br/>✓ gpt-3.5<br/>✓ gpt-4<br/>✓ claude"]
+        G2 --> P4["配额池<br/>staff-pool"]
         
-        G3 --> P5[模型权限<br/>✓ 所有模型]
-        G3 --> P6[配额池<br/>unlimited-pool]
+        G3 --> P5["模型权限<br/>✓ 所有模型"]
+        G3 --> P6["配额池<br/>unlimited-pool"]
         
-        G4 --> P7[API权限<br/>✓ /v1/chat<br/>✓ /v1/embeddings]
-        G4 --> P8[配额池<br/>api-basic-pool]
+        G4 --> P7["API权限<br/>✓ /v1/chat<br/>✓ /v1/embeddings"]
+        G4 --> P8["配额池<br/>api-basic-pool"]
     end
     
     subgraph "知识库权限"
         U1 --> KB1[kb-kb001-admin]
-        KB1 --> KBP1[知识库kb001<br/>✓ 所有权限]
+        KB1 --> KBP1["知识库kb001<br/>✓ 所有权限"]
         
         U2 --> KB2[kb-kb002-reader]
-        KB2 --> KBP2[知识库kb002<br/>✓ 只读权限]
+        KB2 --> KBP2["知识库kb002<br/>✓ 只读权限"]
     end
     
     style G1 fill:#ffd,stroke:#333,stroke-width:2px
@@ -182,4 +182,39 @@ graph TB
     style P2 fill:#faa,stroke:#333,stroke-width:2px
     style P4 fill:#afa,stroke:#333,stroke-width:2px
     style P6 fill:#aaf,stroke:#333,stroke-width:2px
+```
+
+# 权限流转示意图
+```mermaid
+graph LR
+    subgraph "用户身份"
+        USER["用户 UPN<br/>alice@link.cuhk.edu.cn"]
+        APIKEY["API Key<br/>sk-basic-xxxxx"]
+    end
+    
+    subgraph "用户组分配"
+        USER --> GS["学生组<br/>group-student"]
+        USER --> GKB["知识库管理员<br/>kb-kb001-admin"]
+        APIKEY --> GAPI["API基础组<br/>group-api-basic"]
+    end
+    
+    subgraph "权限映射"
+        GS --> QS["配额池<br/>student-pool<br/>💰 $100/月"]
+        GS --> MS["模型权限<br/>✓ GPT-3.5<br/>✓ Claude Instant<br/>❌ GPT-4"]
+        
+        GKB --> KBP["知识库权限<br/>kb001: 完全控制<br/>- 读取/写入/删除<br/>- 成员管理"]
+        
+        GAPI --> QAPI["配额池<br/>api-basic-pool<br/>💰 $50/月"]
+        GAPI --> MAPI["API权限<br/>✓ /v1/chat<br/>✓ /v1/embeddings<br/>❌ /admin/*"]
+    end
+    
+    subgraph "扣费决策"
+        QS --> BILL1["调用GPT-3.5<br/>从student-pool扣费"]
+        QAPI --> BILL2["API调用<br/>从api-basic-pool扣费"]
+    end
+    
+    style USER fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style APIKEY fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style QS fill:#ffebee,stroke:#b71c1c,stroke-width:2px
+    style QAPI fill:#ffebee,stroke:#b71c1c,stroke-width:2px
 ```
